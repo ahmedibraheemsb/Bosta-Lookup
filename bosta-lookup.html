@@ -130,13 +130,25 @@
     ).join('');
   }
 
+  const STATE_MAP = {
+    10: "Pickup requested", 11: "Waiting for route", 20: "Route Assigned",
+    21: "Picked up from business", 22: "Picking up from consignee", 23: "Picked up from consignee",
+    24: "Received at warehouse", 25: "Fulfilled", 30: "In transit between Hubs",
+    40: "Picking up", 41: "Picked up", 45: "Delivered", 46: "Returned to business",
+    47: "Exception", 48: "Terminated", 49: "Canceled", 100: "Lost",
+  };
+
+  function getStateLabel(state) {
+    return STATE_MAP[state?.code] || state?.value || state || "—";
+  }
+
   function getStateClass(state) {
-    const s = JSON.stringify(state||'').toLowerCase();
-    if (s.includes('deliver'))                               return 'state-delivered';
-    if (s.includes('return')||s.includes('rto'))            return 'state-returned';
-    if (s.includes('exception')||s.includes('ndr'))         return 'state-exception';
-    if (s.includes('transit')||s.includes('picked')||s.includes('out_for')) return 'state-transit';
-    if (s.includes('pending')||s.includes('created')||s.includes('pickup')) return 'state-pending';
+    const label = getStateLabel(state).toLowerCase();
+    if (label.includes('delivered'))                                      return 'state-delivered';
+    if (label.includes('returned') || label.includes('rto'))             return 'state-returned';
+    if (label.includes('exception') || label.includes('ndr'))            return 'state-exception';
+    if (label.includes('transit') || label.includes('picked') || label.includes('route')) return 'state-transit';
+    if (label.includes('pickup') || label.includes('requested') || label.includes('warehouse')) return 'state-pending';
     return 'state-default';
   }
 
@@ -201,7 +213,7 @@
       ).join('')}</div>`;
     }
 
-    const stateLabel = d.state?.value || d.state || '—';
+    const stateLabel = getStateLabel(d.state);
     const stateCode  = d.state?.code!==undefined ? ` (${d.state.code})` : '';
     const excHtml    = (d.exceptionReason||d.exceptionCode)
       ? `<div class="exception-box"><strong>Exception / NDR</strong>${d.exceptionReason||''} ${d.exceptionCode?`(${d.exceptionCode})`:''}</div>` : '';
